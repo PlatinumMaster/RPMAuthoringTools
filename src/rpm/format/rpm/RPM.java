@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import xstandard.arm.ARMAssembler.ARMShiftType;
 
 /**
  * Relocatable Program Module
@@ -1201,13 +1202,22 @@ public class RPM {
 				if (!targetIsThumb) {
 					ARMAssembler.writeBranchInstruction(out, addr, false, readARMCond(out));
 				} else {
-					if (true) {
-						throw new RuntimeException("Impossible ARM branch!! @ 0x" + Integer.toHexString(out.getPositionUnbased()));
-					}
+                                        // Load immediate from just ahead of us
+					ARMAssembler.writeLDRInstruction(out, 12, 15, 0);
+                                        
+                                        // Now we can branch...
+					ARMAssembler.writeBXInstruction(out, 12, readARMCond(out));
+                                        
+                                        // Write the address so it can load
+                                        out.writeInt(addr);
+                                        
+					//if (true) {
+					//	throw new RuntimeException("Impossible ARM branch!! @ 0x" + Integer.toHexString(out.getPositionUnbased()));
+					//}
 					//TODO SOLVE STACK STUFF FOR ARM TOO
-					ARMAssembler.writeBlockDataTransferInstruction(out, true, false, false, true, false, ARMAssembler.ARM_STACKPTR_REG_NUM, ARMAssembler.ARMCondition.AL, ARMAssembler.ARM_LINK_REG_NUM);
-					ARMAssembler.writeBLXInstruction(out, addr);
-					ARMAssembler.writeBlockDataTransferInstruction(out, false, true, false, true, true, ARMAssembler.ARM_STACKPTR_REG_NUM, ARMAssembler.ARMCondition.AL, ARMAssembler.ARM_PRGCNT_REG_NUM);
+					//ARMAssembler.writeBlockDataTransferInstruction(out, true, false, false, true, false, ARMAssembler.ARM_STACKPTR_REG_NUM, ARMAssembler.ARMCondition.AL, ARMAssembler.ARM_LINK_REG_NUM);
+					//ARMAssembler.writeBLXInstruction(out, addr);
+					//ARMAssembler.writeBlockDataTransferInstruction(out, false, true, false, true, true, ARMAssembler.ARM_STACKPTR_REG_NUM, ARMAssembler.ARMCondition.AL, ARMAssembler.ARM_PRGCNT_REG_NUM);
 				}
 				break;
 			case THUMB_BRANCH:
